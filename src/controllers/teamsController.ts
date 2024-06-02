@@ -81,7 +81,6 @@ const updateTeam = async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, leaderId } = req.body;
         const id = req.params.id;
-
         const updatedTeam = await teamsServices.updateTeam(id, name, leaderId);
 
         const response: IAPIResponse<Partial<ISquad>> = {

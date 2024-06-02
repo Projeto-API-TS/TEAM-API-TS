@@ -2,6 +2,60 @@ import pool from "../database/postgresql";
 import IUser from "../interfaces/user";
 import CustomError from "../utils/customError";
 
+const getAllUsers = async(): Promise<IUser[]> => {
+    const query = "SELECT * FROM users";
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query);
+        return rows;
+    } catch (e: any) {
+        throw new CustomError(e.message, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
+const getMyUser = async(userID: string): Promise<IUser> => {
+    const query = "SELECT * FROM users WHERE id = $1";
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query, [userID]);
+        return rows[0];
+    } catch (e: any) {
+        throw new CustomError(e.message || e, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
+const getUserById = async(userID: string, isLeader: boolean): Promise<IUser> => {
+    const queryAdmin = "SELECT * FROM users WHERE id = $1";
+    const queryLeader = "SELECT id, username, email, first_name, last_name, squad, is_admin FROM users WHERE id = $1"
+    let client;
+    try {
+        client = await pool.connect();
+        if(isLeader) {
+            const { rows } = await client.query(queryLeader, [userID]);
+            return rows[0];
+        }
+        const { rows } = await client.query(queryAdmin, [userID]);
+        return rows[0];
+    } catch (e: any) {
+        throw new CustomError(e.message || e, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
+
 const getUserByUsername = async (username: string): Promise<IUser> => {
     const query = "SELECT * FROM users WHERE username = $1";
     let client;
@@ -10,7 +64,7 @@ const getUserByUsername = async (username: string): Promise<IUser> => {
         const { rows } = await client.query(query, [username]);
         return rows[0];
     } catch (e: any) {
-        throw new CustomError(e.message, 500);
+        throw new CustomError(e.message || e, 500);
     } finally {
         if (client) {
             client.release();
@@ -39,7 +93,7 @@ const createUser = async (
         ]);
         return rows[0];
     } catch (e: any) {
-        throw new CustomError(e.message, 500);
+        throw new CustomError(e.message || e, 500);
     } finally {
         if (client) {
             client.release();
@@ -61,6 +115,9 @@ const loginQuery = async (email: string): Promise<IUser[]> => {
 };
 
 export default {
+    getAllUsers,
+    getMyUser,
+    getUserById,
     getUserByUsername,
     createUser,
     loginQuery,

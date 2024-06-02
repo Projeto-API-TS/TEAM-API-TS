@@ -82,6 +82,22 @@ const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
     }
 };
 
+const verificateLeader = async (leader_id: string): Promise<ISquad> => {
+    const query = "SELECT * FROM teams WHERE leader = $1";
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query, [leader_id]);
+        return rows[0]; 
+    } catch (e: any) {
+        throw new CustomError(e.message, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
 const updateTeam = async (id: string, name: string, leaderId: string) => {
     const query = "UPDATE teams SET name = $1, leader = $2 WHERE id = $3 RETURNING *";
     let client;
@@ -90,7 +106,7 @@ const updateTeam = async (id: string, name: string, leaderId: string) => {
         const { rows } = await client.query(query, [name, leaderId, id]);
         return rows[0];
     } catch (e: any) {
-        throw { message: e.message, status: 500 };
+        throw new CustomError(e.message, 500);
     } finally {
         if (client) {
             client.release();
@@ -104,5 +120,7 @@ export default {
     getTeamByLeader,
     getTeamByName,
     createTeam,
+    verificateLeader,
     updateTeam
 };
+
