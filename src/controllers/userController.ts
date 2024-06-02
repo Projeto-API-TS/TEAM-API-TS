@@ -17,15 +17,15 @@ const getAllUsers = async (req: Request, res: Response): Promise<void> => {
         };
 
         res.status(200).json(response);
-    } catch(e: any){
+    } catch (e: any) {
         console.error(e);
         res.status(e.status || 500).json({
             data: null,
             error: e.message,
-            status: e.status || 500
+            status: e.status || 500,
         });
     }
-}
+};
 
 const getMyUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -39,15 +39,15 @@ const getMyUser = async (req: Request, res: Response): Promise<void> => {
         };
 
         res.status(200).json(response);
-    } catch(e: any){
+    } catch (e: any) {
         console.error(e);
         res.status(e.status || 500).json({
             data: null,
             error: e.message,
-            status: e.status || 500
+            status: e.status || 500,
         });
     }
-}
+};
 
 const getUserById = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -62,15 +62,15 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
         };
 
         res.status(200).json(response);
-    } catch(e: any){
+    } catch (e: any) {
         console.error(e);
         res.status(e.status || 500).json({
             data: null,
             error: e.message,
-            status: e.status || 500
+            status: e.status || 500,
         });
     }
-}
+};
 
 const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -90,8 +90,27 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
         res.status(e.status || 500).json({
             data: null,
             error: e.message,
-            status: e.status || 500
+            status: e.status || 500,
         });
+    }
+};
+
+const updateUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { username, email, first_name, last_name, password } = req.body;
+        const id = req.userID;
+        const updatedUser = await userServices.updateUser(id, username, email, first_name, last_name, password);
+
+        const response: IAPIResponse<Partial<IUser>> = {
+            data: updatedUser,
+            error: null,
+            status: 201,
+        };
+
+        res.status(201).json(response);
+    } catch (e: any) {
+        console.error(e);
+        res.status(e.status || 500).json({ data: null, error: e.message });
     }
 };
 
@@ -99,10 +118,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password }: IUser = req.body;
 
-        const userID: string = await userServices.loginService(
-            email.trim(),
-            password.trim()
-        );
+        const userID: string = await userServices.loginService(email.trim(), password.trim());
 
         const sessionToken = jwt.sign({ userID }, config.SECRET_KEY, { expiresIn: 9999999999 });
 
@@ -110,11 +126,9 @@ const login = async (req: Request, res: Response): Promise<void> => {
         res.status(200).json({ sessionToken });
     } catch (error) {
         if (error instanceof CustomError) {
-            res
-                .status(error.status)
-                .json({ data: null, error: error.message, status: error.status });
+            res.status(error.status).json({ data: null, error: error.message, status: error.status });
         } else {
-            res.status(500).json({ data: null, error: error, status: 500 })
+            res.status(500).json({ data: null, error: error, status: 500 });
         }
     }
 };
@@ -124,7 +138,7 @@ const logout = async (req: Request, res: Response): Promise<void> => {
         res.clearCookie("sessionID");
         res.status(200).json({ success: true });
     } catch (error: any) {
-        res.status(500).json({ error: error, status: 500 })
+        res.status(500).json({ error: error, status: 500 });
     }
 };
 
@@ -133,6 +147,7 @@ export default {
     getMyUser,
     getUserById,
     createUser,
+    updateUser,
     login,
-    logout
+    logout,
 };
