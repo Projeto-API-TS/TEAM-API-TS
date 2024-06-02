@@ -27,6 +27,28 @@ const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
+const getMyUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userID = req.userID;
+        const user: IUser = await userServices.getMyUser(userID);
+
+        const response: IAPIResponse<IUser> = {
+            data: user,
+            error: null,
+            status: 200,
+        };
+
+        res.status(200).json(response);
+    } catch(e: any){
+        console.error(e);
+        res.status(e.status || 500).json({
+            data: null,
+            error: e.message,
+            status: e.status || 500
+        });
+    }
+}
+
 const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { username, email, first_name, last_name, password } = req.body;
@@ -85,6 +107,7 @@ const logout = async (req: Request, res: Response): Promise<void> => {
 
 export default {
     getAllUsers,
+    getMyUser,
     createUser,
     login,
     logout

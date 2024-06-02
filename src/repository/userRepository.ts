@@ -18,6 +18,22 @@ const getAllUsers = async(): Promise<IUser[]> => {
     }
 };
 
+const getMyUser = async(userID: string): Promise<IUser> => {
+    const query = "SELECT * FROM users WHERE id = $1";
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query, [userID]);
+        return rows[0];
+    } catch (e: any) {
+        throw new CustomError(e.message || e, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
 const getUserByUsername = async (username: string): Promise<IUser> => {
     const query = "SELECT * FROM users WHERE username = $1";
     let client;
@@ -26,7 +42,7 @@ const getUserByUsername = async (username: string): Promise<IUser> => {
         const { rows } = await client.query(query, [username]);
         return rows[0];
     } catch (e: any) {
-        throw new CustomError(e.message, 500);
+        throw new CustomError(e.message || e, 500);
     } finally {
         if (client) {
             client.release();
@@ -55,7 +71,7 @@ const createUser = async (
         ]);
         return rows[0];
     } catch (e: any) {
-        throw new CustomError(e.message, 500);
+        throw new CustomError(e.message || e, 500);
     } finally {
         if (client) {
             client.release();
@@ -78,6 +94,7 @@ const loginQuery = async (email: string): Promise<IUser[]> => {
 
 export default {
     getAllUsers,
+    getMyUser,
     getUserByUsername,
     createUser,
     loginQuery,

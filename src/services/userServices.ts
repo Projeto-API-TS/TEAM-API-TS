@@ -14,6 +14,15 @@ const getAllUsers = async(): Promise<IUser[]> => {
     }
 }
 
+const getMyUser = async(userID: string): Promise<IUser> => {
+    try {
+        const user: IUser = await userRepository.getMyUser(userID);
+        return user;
+    } catch (e: any) {
+        throw e;
+    }
+}
+
 const createUser = async (
     username: string,
     email: string,
@@ -91,6 +100,7 @@ export const loginService = async (
 
 export default {
     getAllUsers,
+    getMyUser,
     createUser,
     loginService,
 };
