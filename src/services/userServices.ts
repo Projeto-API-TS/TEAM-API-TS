@@ -3,6 +3,7 @@ import IUser from "../interfaces/user";
 import hashPassword from "../utils/hashPassword";
 import CustomError from "../utils/customError";
 import { validateEmail, validateName, validatePassword, validateUsername } from "../utils/validator";
+import bcrypt from "bcrypt";
 
 const createUser = async (
     username: string,
@@ -45,6 +46,41 @@ const createUser = async (
     }
 };
 
+export const loginService = async (
+    email:string,
+    password:string
+): Promise<string> => {
+    try {
+        const result = await userRepository.loginQuery(email);
+
+        if (result.length > 0) {
+            const user = result[0];
+            const hashedPassword = await bcrypt.compare(password, user.password)
+
+            if (!hashedPassword) {
+                const error = new CustomError("Email e/ou senha incorretos.", 404);
+                throw error;
+            }
+
+            return user.id;
+
+        } else {
+            const error = new CustomError("Email e/ou senha incorretos.", 404);
+            throw error;
+        }
+
+    } catch (error) {
+        if (error instanceof CustomError) {
+            throw error;
+        } else if (error instanceof Error) {
+            throw new CustomError(error.message, 500);
+        }
+        throw error;
+    }
+}
+
+
 export default {
     createUser,
+    loginService,
 };

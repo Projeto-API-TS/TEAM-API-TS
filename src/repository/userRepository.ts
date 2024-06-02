@@ -47,7 +47,21 @@ const createUser = async (
     }
 };
 
+const loginQuery = async (email: string): Promise<IUser[]> => {
+    const client = await pool.connect();
+    try {
+        const query = "SELECT id, password FROM users WHERE email = $1";
+        const result = await client.query(query, [email]);
+        return result.rows;
+    } catch (error: any) {
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 export default {
     getUserByUsername,
     createUser,
+    loginQuery,
 };
