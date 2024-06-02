@@ -2,6 +2,22 @@ import pool from "../database/postgresql";
 import IUser from "../interfaces/user";
 import CustomError from "../utils/customError";
 
+const getAllUsers = async(): Promise<IUser[]> => {
+    const query = "SELECT * FROM users";
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query);
+        return rows;
+    } catch (e: any) {
+        throw new CustomError(e.message, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
 const getUserByUsername = async (username: string): Promise<IUser> => {
     const query = "SELECT * FROM users WHERE username = $1";
     let client;
@@ -48,6 +64,7 @@ const createUser = async (
 };
 
 export default {
+    getAllUsers,
     getUserByUsername,
     createUser,
 };

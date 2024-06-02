@@ -4,6 +4,15 @@ import hashPassword from "../utils/hashPassword";
 import CustomError from "../utils/customError";
 import { validateEmail, validateName, validatePassword, validateUsername } from "../utils/validator";
 
+const getAllUsers = async(): Promise<IUser[]> => {
+    try {
+        const users: IUser[] = await userRepository.getAllUsers();
+        return users;
+    } catch (e: any) {
+        throw e;
+    }
+}
+
 const createUser = async (
     username: string,
     email: string,
@@ -46,5 +55,6 @@ const createUser = async (
 };
 
 export default {
+    getAllUsers,
     createUser,
 };
