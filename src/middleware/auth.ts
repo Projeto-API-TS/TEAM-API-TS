@@ -5,7 +5,7 @@ import config from "../config/index";
 declare global {
     namespace Express {
         interface Request {
-            user?: string;
+            userID?: string;
         }
     }
 }
@@ -17,7 +17,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
         try {
             const decoded = jwt.verify(sessionToken, config.SECRET_KEY);
             if (typeof decoded === 'object' && 'user' in decoded) {
-                req.user = decoded.user;
+                req.userID = decoded.userID;
                 next();
             } else {
                 throw new Error('Token inválido');
