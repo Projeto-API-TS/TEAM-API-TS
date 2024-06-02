@@ -50,6 +50,22 @@ const getTeamByLeader = async (leaderId: string): Promise<ISquad> => {
     }
 };
 
+const getTeamByName = async (leaderId: string): Promise<ISquad> => {
+    const query = "SELECT * FROM teams WHERE name = $1";
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query, [leaderId]);
+        return rows[0];
+    } catch (e: any) {
+        throw new CustomError(e.message, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
 const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
     const query = `INSERT INTO teams (name, leader) VALUES ($1, $2) RETURNING *`;
     let client;
@@ -86,6 +102,7 @@ export default {
     getTeamById,
     getAllTeams,
     getTeamByLeader,
+    getTeamByName,
     createTeam,
     updateTeam
 };
