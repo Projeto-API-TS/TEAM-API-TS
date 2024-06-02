@@ -34,3 +34,11 @@ export const validateUsername = (username: string): boolean => {
     const usernameRegex = /^[A-Za-z0-9_]+$/;
     return usernameRegex.test(username);
 };
+
+export const validateTeamName = (teamName: string): boolean => {
+    if (teamName.length < 3 || teamName.length > 30) {
+        return false;
+    }
+    const teamNameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/;
+    return teamNameRegex.test(teamName);
+};
