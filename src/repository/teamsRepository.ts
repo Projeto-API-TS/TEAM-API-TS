@@ -50,9 +50,25 @@ const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
     }
 };
 
+const verificateLeader = async (leader_id: string): Promise<ISquad> => {
+    const query = "SELECT * FROM teams WHERE leader = $1";
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query, [leader_id]);
+        return rows[0]; 
+    } catch (e: any) {
+        throw new CustomError(e.message, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
 
 export default {
     getTeamById,
     getAllTeams,
     createTeam,
+    verificateLeader,
 };
