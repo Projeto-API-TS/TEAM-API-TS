@@ -84,13 +84,24 @@ const getTeamMembers = async (team_id: string): Promise<IUser[]> => {
 };
 
 const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
-    const query = `INSERT INTO teams (name, leader) VALUES ($1, $2) RETURNING *`;
+    const createTeamQuery = `INSERT INTO teams (name, leader) VALUES ($1, $2) RETURNING *`;
+    const updateUserQuery = `UPDATE users SET squad = $1 WHERE id = $2 RETURNING *`;
     let client;
     try {
         client = await pool.connect();
-        const { rows } = await client.query(query, [name, leaderId]);
-        return rows[0];
+        await client.query('BEGIN');
+
+        const { rows } = await client.query(createTeamQuery, [name, leaderId]);
+        const newTeam = rows[0];
+        
+        await client.query(updateUserQuery, [newTeam.id, leaderId]);
+
+        await client.query('COMMIT');
+        return newTeam;
     } catch (e: any) {
+        if (client) {
+            await client.query('ROLLBACK');
+        }
         throw new CustomError(e.message, 500);
     } finally {
         if (client) {
@@ -98,6 +109,7 @@ const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
         }
     }
 };
+
 
 const verificateLeader = async (leader_id: string): Promise<ISquad> => {
     const query = "SELECT * FROM teams WHERE leader = $1";
