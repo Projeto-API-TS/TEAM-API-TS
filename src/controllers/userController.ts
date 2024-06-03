@@ -104,17 +104,24 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-const updateUser = async (req: Request, res: Response): Promise<void> => {
+interface AuthenticatedRequest extends Request {
+    user: IUser; 
+}
+const updateUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const { username, email, first_name, last_name, password } = req.body;
         const id = req.userID;
+        const requesterIsAdmin = req.user.is_admin;
+
+
         const updatedUser = await userServices.updateUser(
             id,
             username,
             email,
             first_name,
             last_name,
-            password
+            password,
+            requesterIsAdmin
         );
 
         const response: IAPIResponse<Partial<IUser>> = {

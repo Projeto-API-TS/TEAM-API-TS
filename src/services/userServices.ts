@@ -129,7 +129,8 @@ const updateUser = async (
     email: string,
     first_name: string,
     last_name: string,
-    password: string
+    password: string,
+    requesterIsAdmin:boolean,
 ): Promise<IUser> => {
     try {
         if (username && !validateUsername(username)) {
@@ -177,16 +178,28 @@ const updateUser = async (
         const oldUser: IUser = await userRepository.getMyUser(id);
         const hashedPassword = password ? await hashPassword(password) : null;
 
-        const updatedUser = await userRepository.updateUser(
+        if(requesterIsAdmin && oldUser.is_admin ===false){
+
+            return await userRepository.updateUser(
+                id,
+                username || oldUser.username,
+                email || oldUser.email,
+                first_name || oldUser.first_name,
+                last_name || oldUser.last_name,
+                hashedPassword || oldUser.password,
+                true
+            );
+        }
+        return await userRepository.updateUser(
             id,
             username || oldUser.username,
             email || oldUser.email,
             first_name || oldUser.first_name,
             last_name || oldUser.last_name,
-            hashedPassword || oldUser.password
+            hashedPassword || oldUser.password,
+            oldUser.is_admin
         );
 
-        return updatedUser;
     } catch (e) {
         throw e;
     }
