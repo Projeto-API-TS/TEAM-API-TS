@@ -142,6 +142,25 @@ const updateTeam = async (id: string, name: string, leaderId: string) => {
         }
     }
 };
+const deleteTeamById = async(team_id:string):Promise<void>=>{
+    const queryUpdateLeader="UPDATE users SET leader = NULL WHERE leader = (SELECT leader FROM teams WHERE ID =$1)";
+    const queryDeleteTeam ="DELETE FROM teams WHERE id =$1";
+
+    let client;
+
+    try {
+        client = await pool.connect();
+        await client.query(queryUpdateLeader, [team_id]);
+        await client.query(queryDeleteTeam, [team_id]);
+
+    } catch (e:any) {
+        throw new CustomError (e.message,500);
+    }finally {
+        if (client) {
+            client.release();
+        }
+    }
+}
 
 export default {
     getTeamById,
@@ -151,6 +170,7 @@ export default {
     getTeamMembers,
     createTeam,
     verificateLeader,
-    updateTeam
+    updateTeam,
+    deleteTeamById,    
 };
 

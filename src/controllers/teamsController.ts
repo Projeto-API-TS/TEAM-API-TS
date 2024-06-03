@@ -123,10 +123,33 @@ const updateTeam = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+const deleteTeamById = async(req:Request,res:Response):Promise<void>=>{
+    try {
+        const {team_id} = req.params;
+        const deleteTeam = await teamsServices.deleteTeamById(team_id);
+
+        const response: IAPIResponse<Partial<ISquad>> = {
+            data: null,
+            error: null,
+            status: 200,
+        };
+        res.status(200).json(response);
+
+    } catch (e:any) {
+        console.error(e);
+        res.status(e.status || 500).json({
+            data: null,
+            error: e.message,
+            status: e.status || 500,
+        });
+    }
+}
+
 export default {
     createTeam,
     getAllTeams,
     getTeamById,
     getTeamMembers,
     updateTeam,
+    deleteTeamById,
 };

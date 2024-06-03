@@ -132,10 +132,28 @@ const updateTeam = async (id: string, name: string, leaderId: string): Promise<I
         throw e;
     }
 };
+
+const deleteTeamById = async(team_id:string):Promise<void>=>{
+    try {
+        const team = await teamsRepository.getTeamById(team_id);
+
+        if(!team){
+            throw new CustomError('Equipe não encontrada.',404);
+        }
+
+         await teamsRepository.deleteTeamById(team_id);
+
+
+    } catch (e) {
+        throw e;
+    }
+}
+
 export default {
     createTeam,
     getAllTeams,
     getTeamById,
     getTeamMembers,
     updateTeam,
+    deleteTeamById,
 };
