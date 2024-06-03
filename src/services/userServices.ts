@@ -175,6 +175,7 @@ const updateUser = async (
             );
         }
 
+        
         const oldUser: IUser = await userRepository.getMyUser(id);
         const hashedPassword = password ? await hashPassword(password) : null;
 
