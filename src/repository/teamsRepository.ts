@@ -1,5 +1,6 @@
 import pool from "../database/postgresql";
 import ISquad from "../interfaces/squad";
+import IUser from "../interfaces/user";
 import CustomError from "../utils/customError";
 
 const getTeamById = async (team_id: string): Promise<ISquad | null> => {
@@ -66,6 +67,22 @@ const getTeamByName = async (leaderId: string): Promise<ISquad> => {
     }
 };
 
+const getTeamMembers = async (team_id: string): Promise<IUser[]> => {
+    const query = "SELECT id, username, email, first_name, last_name, squad FROM users WHERE squad = $1";
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query , [team_id]);
+        return rows;
+    } catch (e: any) {
+        throw new CustomError(e.message, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
 const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
     const query = `INSERT INTO teams (name, leader) VALUES ($1, $2) RETURNING *`;
     let client;
@@ -119,6 +136,7 @@ export default {
     getAllTeams,
     getTeamByLeader,
     getTeamByName,
+    getTeamMembers,
     createTeam,
     verificateLeader,
     updateTeam
