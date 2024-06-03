@@ -81,8 +81,13 @@ const insertMember = async (team_id: string, user_id: string, loggedUserId: stri
     }
 };
 
-const getAllTeams = async (): Promise<ISquad[]> => {
+const getAllTeams = async (userIDLogged: string): Promise<ISquad[]> => {
     try {
+        const userLogged = await userRepository.getMyUser(userIDLogged);
+        const userIsLeader = await teamsRepository.verificateLeader(userLogged.id)
+        if (!userLogged.is_admin && !userIsLeader) {
+            throw new CustomError("Acesso não autorizado!", 403);
+        }
         const teams: ISquad[] = await teamsRepository.getAllTeams();
         return teams;
     } catch (e) {
@@ -194,7 +199,7 @@ const deleteTeamById = async (team_id: string): Promise<void> => {
     }
 };
 
-const deleteMemberFromTeam = async(team_id: string, user_id: string, loggedUserId: string): Promise<IUser[] | null> => {
+const deleteMemberFromTeam = async (team_id: string, user_id: string, loggedUserId: string): Promise<IUser[] | null> => {
     try {
         if (!validateUUID(team_id)) {
             throw new CustomError("ID de time inválido.", 400);
@@ -220,7 +225,7 @@ const deleteMemberFromTeam = async(team_id: string, user_id: string, loggedUserI
         }
 
         const member = await userRepository.getMyUser(user_id);
-        if (!member || !teamMember.some(name => name.id === user_id)) {
+        if (!member || !teamMember.some((name) => name.id === user_id)) {
             throw new CustomError("Usuário não encontrado na equipe.", 404);
         }
 
@@ -230,7 +235,7 @@ const deleteMemberFromTeam = async(team_id: string, user_id: string, loggedUserI
     } catch (e) {
         throw e;
     }
-}
+};
 
 export default {
     createTeam,

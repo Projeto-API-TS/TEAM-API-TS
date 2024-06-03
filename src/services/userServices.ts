@@ -4,16 +4,15 @@ import IUser from "../interfaces/user";
 import ISquad from "../interfaces/squad";
 import hashPassword from "../utils/hashPassword";
 import CustomError from "../utils/customError";
-import {
-    validateEmail,
-    validateName,
-    validatePassword,
-    validateUsername,
-} from "../utils/validator";
+import { validateEmail, validateName, validatePassword, validateUsername } from "../utils/validator";
 import bcrypt from "bcrypt";
 
-const getAllUsers = async (): Promise<IUser[]> => {
+const getAllUsers = async (userIDLogged: string): Promise<IUser[]> => {
     try {
+        const userLogged = await userRepository.getMyUser(userIDLogged);
+        if (!userLogged.is_admin) {
+            throw new CustomError("Acesso não autorizado!", 403);
+        }
         const users: IUser[] = await userRepository.getAllUsers();
         return users;
     } catch (e: any) {
@@ -30,23 +29,17 @@ const getMyUser = async (userID: string): Promise<IUser> => {
     }
 };
 
-const getUserById = async (
-    userID: string,
-    userIDLogged: string
-): Promise<IUser> => {
+const getUserById = async (userID: string, userIDLogged: string): Promise<IUser> => {
     try {
         const userLogged: IUser = await userRepository.getMyUser(userIDLogged);
-        const userLoggedLeaderTeam: ISquad =
-            await teamsRepository.verificateLeader(userIDLogged);
+        const userLoggedLeaderTeam: ISquad = await teamsRepository.verificateLeader(userIDLogged);
         const userById: IUser = await userRepository.getMyUser(userID);
-        const userByIdLeaderTeam: ISquad =
-            await teamsRepository.verificateLeader(userID);
+        const userByIdLeaderTeam: ISquad = await teamsRepository.verificateLeader(userID);
         let user: IUser;
         if (userLogged.is_admin) {
             user = await userRepository.getUserById(userID, false);
         } else if (
-            (userLoggedLeaderTeam &&
-                userLoggedLeaderTeam.id === userById.squad) ||
+            (userLoggedLeaderTeam && userLoggedLeaderTeam.id === userById.squad) ||
             (userLoggedLeaderTeam && userByIdLeaderTeam)
         ) {
             user = await userRepository.getUserById(userID, true);
@@ -75,10 +68,7 @@ const createUser = async (
         }
 
         if (!validateEmail(email)) {
-            throw new CustomError(
-                "O email deve ser válido no formato padrão (ex: usuario@exemplo.com).",
-                400
-            );
+            throw new CustomError("O email deve ser válido no formato padrão (ex: usuario@exemplo.com).", 400);
         }
 
         if (!first_name || !last_name) {
@@ -86,37 +76,20 @@ const createUser = async (
         }
 
         if (!validateName(first_name + last_name)) {
-            throw new CustomError(
-                "O nome deve ter pelo menos 3 caracteres e conter apenas letras e espaços.",
-                400
-            );
+            throw new CustomError("O nome deve ter pelo menos 3 caracteres e conter apenas letras e espaços.", 400);
         }
 
         if (!validatePassword(password)) {
-            throw new CustomError(
-                "A senha deve ter pelo menos 8 caracteres, incluindo letras e números.",
-                400
-            );
+            throw new CustomError("A senha deve ter pelo menos 8 caracteres, incluindo letras e números.", 400);
         }
 
-        const userExists: IUser = await userRepository.getUserByUsername(
-            username
-        );
+        const userExists: IUser = await userRepository.getUserByUsername(username);
 
         if (userExists) {
-            throw new CustomError(
-                "O username fornecido já está sendo utilizado.",
-                400
-            );
+            throw new CustomError("O username fornecido já está sendo utilizado.", 400);
         }
         const hashedPassword = await hashPassword(password);
-        const user: Partial<IUser> = await userRepository.createUser(
-            username,
-            email,
-            first_name,
-            last_name,
-            hashedPassword
-        );
+        const user: Partial<IUser> = await userRepository.createUser(username, email, first_name, last_name, hashedPassword);
         return user;
     } catch (e) {
         throw e;
@@ -140,38 +113,21 @@ const updateUser = async (
         }
 
         if (email && !validateEmail(email)) {
-            throw new CustomError(
-                "O email deve ser válido no formato padrão (ex: usuario@exemplo.com).",
-                400
-            );
+            throw new CustomError("O email deve ser válido no formato padrão (ex: usuario@exemplo.com).", 400);
         }
 
-        if (
-            (first_name || last_name) &&
-            !validateName(first_name + last_name)
-        ) {
-            throw new CustomError(
-                "O nome deve ter pelo menos 3 caracteres e conter apenas letras e espaços.",
-                400
-            );
+        if ((first_name || last_name) && !validateName(first_name + last_name)) {
+            throw new CustomError("O nome deve ter pelo menos 3 caracteres e conter apenas letras e espaços.", 400);
         }
 
         if (password && !validatePassword(password)) {
-            throw new CustomError(
-                "A senha deve ter pelo menos 8 caracteres, incluindo letras e números.",
-                400
-            );
+            throw new CustomError("A senha deve ter pelo menos 8 caracteres, incluindo letras e números.", 400);
         }
 
-        const usernameExists: IUser = await userRepository.getUserByUsername(
-            username
-        );
+        const usernameExists: IUser = await userRepository.getUserByUsername(username);
 
         if (usernameExists) {
-            throw new CustomError(
-                "O username fornecido já está sendo utilizado.",
-                400
-            );
+            throw new CustomError("O username fornecido já está sendo utilizado.", 400);
         }
 
         const oldUser: IUser = await userRepository.getMyUser(id);
@@ -192,25 +148,14 @@ const updateUser = async (
     }
 };
 
-const deleteUserById = async (
-    userID: string,
-    userIDLogged: string
-): Promise<IUser> => {
+const deleteUserById = async (userID: string, userIDLogged: string): Promise<IUser> => {
     try {
         const userLogged: IUser = await userRepository.getMyUser(userIDLogged);
-        const userLeader: ISquad = await teamsRepository.verificateLeader(
-            userID
-        );
+        const userLeader: ISquad = await teamsRepository.verificateLeader(userID);
         if (!userLogged.is_admin) {
-            throw new CustomError(
-                "Ação não autorizada! Você não é um administrador.",
-                403
-            );
+            throw new CustomError("Ação não autorizada! Você não é um administrador.", 403);
         } else if (userLeader) {
-            throw new CustomError(
-                "Ação não autorizada! Você não pode excluir um líder de equipe.",
-                403
-            );
+            throw new CustomError("Ação não autorizada! Você não pode excluir um líder de equipe.", 403);
         }
         const user: IUser = await userRepository.deleteUserById(userID);
         return user;
@@ -219,25 +164,16 @@ const deleteUserById = async (
     }
 };
 
-const loginService = async (
-    email: string,
-    password: string
-): Promise<string> => {
+const loginService = async (email: string, password: string): Promise<string> => {
     try {
         const result = await userRepository.loginQuery(email);
 
         if (result.length > 0) {
             const user = result[0];
-            const hashedPassword = await bcrypt.compare(
-                password,
-                user.password
-            );
+            const hashedPassword = await bcrypt.compare(password, user.password);
 
             if (!hashedPassword) {
-                const error = new CustomError(
-                    "Email e/ou senha incorretos.",
-                    404
-                );
+                const error = new CustomError("Email e/ou senha incorretos.", 404);
                 throw error;
             }
 

@@ -53,8 +53,9 @@ const insertMember = async (req: Request, res: Response): Promise<void> => {
 
 const getAllTeams = async (req: Request, res: Response): Promise<void> => {
     try {
-        const teams: ISquad[] = await teamsServices.getAllTeams();
+        const userIDLogged = req.userID;
 
+        const teams: ISquad[] = await teamsServices.getAllTeams(userIDLogged);
         const response = {
             data: teams,
             error: null,

@@ -3,7 +3,7 @@ import userController from "../controllers/userController";
 import authMiddleware from "../middleware/auth";
 const router = express.Router();
 
-router.get("/", userController.getAllUsers);
+router.get("/", authMiddleware, userController.getAllUsers);
 router.get("/me", authMiddleware, userController.getMyUser);
 router.get("/:user_id", authMiddleware, userController.getUserById);
 router.post("/", userController.createUser);
