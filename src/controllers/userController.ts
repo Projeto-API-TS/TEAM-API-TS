@@ -133,6 +133,29 @@ const login = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+const deleteUserById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userIDLogged = req.userID;
+        const userID = req.params.user_id;
+        const user: IUser = await userServices.deleteUserById(userID, userIDLogged);
+
+        const response: IAPIResponse<IUser> = {
+            data: user,
+            error: null,
+            status: 200,
+        };
+
+        res.status(200).json(response);
+    } catch (e: any) {
+        console.error(e);
+        res.status(e.status || 500).json({
+            data: null,
+            error: e.message,
+            status: e.status || 500,
+        });
+    }
+};
+
 const logout = async (req: Request, res: Response): Promise<void> => {
     try {
         res.clearCookie("sessionID");
@@ -149,5 +172,6 @@ export default {
     createUser,
     updateUser,
     login,
+    deleteUserById,
     logout,
 };
