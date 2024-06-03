@@ -111,6 +111,22 @@ const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
 };
 
 
+const insertMember = async (team_id: string, user_id: string,) => {
+    const query = `UPDATE users SET squad = $1 WHERE id = $2 RETURNING id, username, email, first_name, last_name, squad`;
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query, [team_id, user_id]);
+        return rows[0];
+    } catch (e: any) {
+        throw new CustomError(e.message, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
 const verificateLeader = async (leader_id: string): Promise<ISquad> => {
     const query = "SELECT * FROM teams WHERE leader = $1";
     let client;
@@ -142,6 +158,7 @@ const updateTeam = async (id: string, name: string, leaderId: string) => {
         }
     }
 };
+
 const deleteTeamById = async(team_id:string):Promise<void>=>{
     const queryUpdateLeader="UPDATE users SET leader = NULL WHERE leader = (SELECT leader FROM teams WHERE ID =$1)";
     const queryDeleteTeam ="DELETE FROM teams WHERE id =$1";
@@ -169,6 +186,7 @@ export default {
     getTeamByName,
     getTeamMembers,
     createTeam,
+    insertMember,
     verificateLeader,
     updateTeam,
     deleteTeamById,    

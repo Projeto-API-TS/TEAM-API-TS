@@ -27,6 +27,30 @@ const createTeam = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+const insertMember = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const {team_id , user_id} = req.params;
+        const loggedUserId = req.userID;
+
+        const addedUser: Partial<IUser> = await teamsServices.insertMember(team_id, user_id, loggedUserId);
+
+        const response = {
+            data: addedUser,
+            error: null,
+            status: 200,
+        };
+
+        res.status(200).json(response);
+    } catch (e: any) {
+        console.error(e);
+        res.status(e.status || 500).json({
+            data: null,
+            error: e.message,
+            status: e.status || 500,
+        });
+    }
+};
+
 const getAllTeams = async (req: Request, res: Response): Promise<void> => {
     try {
         const teams: ISquad[] = await teamsServices.getAllTeams();
@@ -83,7 +107,7 @@ const getTeamMembers = async (req: Request, res: Response): Promise<void> => {
         const { team_id } = req.params;
         const userID = req.userID;
 
-        const members : IUser[] = await teamsServices.getTeamMembers(team_id, userID);
+        const members: IUser[] = await teamsServices.getTeamMembers(team_id, userID);
 
         const response = {
             data: members,
@@ -123,9 +147,9 @@ const updateTeam = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-const deleteTeamById = async(req:Request,res:Response):Promise<void>=>{
+const deleteTeamById = async (req: Request, res: Response): Promise<void> => {
     try {
-        const {team_id} = req.params;
+        const { team_id } = req.params;
         const deleteTeam = await teamsServices.deleteTeamById(team_id);
 
         const response: IAPIResponse<Partial<ISquad>> = {
@@ -134,8 +158,7 @@ const deleteTeamById = async(req:Request,res:Response):Promise<void>=>{
             status: 200,
         };
         res.status(200).json(response);
-
-    } catch (e:any) {
+    } catch (e: any) {
         console.error(e);
         res.status(e.status || 500).json({
             data: null,
@@ -143,10 +166,11 @@ const deleteTeamById = async(req:Request,res:Response):Promise<void>=>{
             status: e.status || 500,
         });
     }
-}
+};
 
 export default {
     createTeam,
+    insertMember,
     getAllTeams,
     getTeamById,
     getTeamMembers,
