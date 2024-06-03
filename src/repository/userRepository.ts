@@ -34,9 +34,13 @@ const getMyUser = async (userID: string): Promise<IUser> => {
     }
 };
 
-const getUserById = async (userID: string, isLeader: boolean): Promise<IUser> => {
+const getUserById = async (
+    userID: string,
+    isLeader: boolean
+): Promise<IUser> => {
     const queryAdmin = "SELECT * FROM users WHERE id = $1";
-    const queryLeader = "SELECT id, username, email, first_name, last_name, squad, is_admin FROM users WHERE id = $1";
+    const queryLeader =
+        "SELECT id, username, email, first_name, last_name, squad, is_admin FROM users WHERE id = $1";
     let client;
     try {
         client = await pool.connect();
@@ -83,7 +87,13 @@ const createUser = async (
     let client;
     try {
         client = await pool.connect();
-        const { rows } = await client.query(query, [username, email, first_name, last_name, password]);
+        const { rows } = await client.query(query, [
+            username,
+            email,
+            first_name,
+            last_name,
+            password,
+        ]);
         return rows[0];
     } catch (e: any) {
         throw new CustomError(e.message || e, 500);
@@ -111,10 +121,33 @@ const updateUser = async (
     let client;
     try {
         client = await pool.connect();
-        const { rows } = await client.query(query, [username, email, first_name, last_name, password, id]);
+        const { rows } = await client.query(query, [
+            username,
+            email,
+            first_name,
+            last_name,
+            password,
+            id,
+        ]);
         return rows[0];
     } catch (e: any) {
         throw new CustomError(e.message, 500);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
+const deleteUserById = async (userID: string): Promise<IUser> => {
+    const query = `DELETE FROM users WHERE id = $1 RETURNING *`;
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query, [userID]);
+        return rows[0];
+    } catch (e: any) {
+        throw new CustomError(e.message || e, 500);
     } finally {
         if (client) {
             client.release();
@@ -142,5 +175,6 @@ export default {
     getUserByUsername,
     createUser,
     updateUser,
+    deleteUserById,
     loginQuery,
 };
