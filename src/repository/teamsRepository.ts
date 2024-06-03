@@ -179,6 +179,26 @@ const deleteTeamById = async(team_id:string):Promise<void>=>{
     }
 }
 
+const removeMemberFromTeam = async (team_id: string, user_id: string) => {
+    const query = "UPDATE users SET squad = NULL WHERE id = $1 AND squad = $2";
+
+    let client;
+    try {
+        client = await pool.connect();
+        const { rows } = await client.query(query, [user_id, team_id]);
+        return rows[0]
+
+    } catch (e: any) {
+        throw new CustomError(e.message, 500);
+
+    } finally {
+        if (client) {
+            client.release();
+
+        }
+    }
+};
+
 export default {
     getTeamById,
     getAllTeams,
@@ -189,6 +209,7 @@ export default {
     insertMember,
     verificateLeader,
     updateTeam,
-    deleteTeamById,    
+    deleteTeamById,   
+    removeMemberFromTeam, 
 };
 
