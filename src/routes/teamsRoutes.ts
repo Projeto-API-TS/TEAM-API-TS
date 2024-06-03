@@ -9,6 +9,6 @@ router.get("/teams/:team_id/members", authMiddleware, teamController.getTeamMemb
 router.get("/teams/:team_id", teamController.getTeamById);
 router.patch("/teams/:id", teamController.updateTeam);
 router.delete("/teams/:team_id", teamController.updateTeam);
-router.delete("/teams/:team_id/member/:user_id", teamController.deleteTeamMember)
+router.delete("/teams/:team_id/member/:user_id",authMiddleware, teamController.deleteTeamMember)
 
 export default router;
