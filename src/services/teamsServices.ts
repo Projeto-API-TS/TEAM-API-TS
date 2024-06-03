@@ -2,6 +2,8 @@ import teamsRepository from "../repository/teamsRepository";
 import ISquad from "../interfaces/squad";
 import { validateTeamName, validateUUID } from "../utils/validator";
 import CustomError from "../utils/customError";
+import IUser from "../interfaces/user";
+import userRepository from "../repository/userRepository";
 
 const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
     try {
@@ -58,6 +60,35 @@ const getTeamById = async (team_id: string): Promise<ISquad | null> => {
     }
 };
 
+const getTeamMembers = async (team_id: string, userID: string): Promise<IUser[]> => {
+    try {
+        if (!team_id) {
+            throw new CustomError("O id é obrigatotrio.", 400);
+        }
+
+        if (!validateUUID(team_id)) {
+            throw new CustomError("ID de time invalido.", 400);
+        }
+        const team: ISquad | null = await teamsRepository.getTeamById(team_id);
+
+        if (!team) {
+            throw new CustomError("Equipe não encontrada.", 404);
+        }
+
+        const user = await userRepository.getMyUser(userID);
+    
+        if (!user.is_admin && user.squad !== team.id) {
+            throw new CustomError("Acesso não autorizado!", 403);
+        }
+
+        const members: IUser[] = await teamsRepository.getTeamMembers(team_id);
+
+        return members;
+    } catch (e) {
+        throw e;
+    }
+};
+
 const updateTeam = async (id: string, name: string, leaderId: string): Promise<ISquad> => {
     try {
         if (!id) {
@@ -105,5 +136,6 @@ export default {
     createTeam,
     getAllTeams,
     getTeamById,
+    getTeamMembers,
     updateTeam,
 };

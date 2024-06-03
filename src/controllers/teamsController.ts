@@ -1,5 +1,6 @@
 import IAPIResponse from "../interfaces/apiResponse";
 import ISquad from "../interfaces/squad";
+import IUser from "../interfaces/user";
 import teamsServices from "../services/teamsServices";
 import { Request, Response } from "express";
 
@@ -77,6 +78,29 @@ const getTeamById = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+const getTeamMembers = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { team_id } = req.params;
+        const userID = req.userID;
+
+        const members : IUser[] = await teamsServices.getTeamMembers(team_id, userID);
+
+        const response = {
+            data: members,
+            error: null,
+            status: 200,
+        };
+        res.status(200).json(response);
+    } catch (e: any) {
+        console.error(e);
+        res.status(e.status || 500).json({
+            data: null,
+            error: e.message,
+            status: e.status || 500,
+        });
+    }
+};
+
 const updateTeam = async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, leaderId } = req.body;
@@ -91,7 +115,11 @@ const updateTeam = async (req: Request, res: Response): Promise<void> => {
         res.status(200).json(response);
     } catch (e: any) {
         console.error(e);
-        res.status(e.status || 500).json({ data: null, error: e.message });
+        res.status(e.status || 500).json({
+            data: null,
+            error: e.message,
+            status: e.status || 500,
+        });
     }
 };
 
@@ -99,5 +127,6 @@ export default {
     createTeam,
     getAllTeams,
     getTeamById,
-    updateTeam
+    getTeamMembers,
+    updateTeam,
 };
