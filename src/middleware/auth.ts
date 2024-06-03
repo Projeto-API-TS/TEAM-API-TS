@@ -6,6 +6,7 @@ declare global {
     namespace Express {
         interface Request {
             userID: string;
+            isAdmin:boolean;
         }
     }
 }
@@ -18,6 +19,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
             const decoded = jwt.verify(sessionToken, config.SECRET_KEY);
             if (typeof decoded === 'object' && 'userID' in decoded) {
                 req.userID = decoded.userID;
+                req.isAdmin = decoded.isAdmin;
                 next();
             } else {
                 throw new Error('Token inválido');
