@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 import CustomError from "../utils/customError";
 import jwt from "jsonwebtoken";
 import config from "../config";
+import userRepository from "../repository/userRepository";
 
 const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -107,27 +108,37 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
 const updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { username, email, first_name, last_name, password } = req.body;
-        const id = req.userID;
-        const requesterIsAdmin = req.isAdmin;
+        const id = req.params.user_id;
 
+        
+        const user: IUser = await userRepository.getMyUser(id);
 
-        const updatedUser = await userServices.updateUser(
+        
+        if (!user) {
+            throw new CustomError('Usuário não encontrado.', 404);
+        }
+
+        
+        if (req.body.is_admin && user.id === id) {
+            throw new CustomError('Você não pode alterar sua própria permissão para administrador.', 403);
+        }
+
+        const updatedUser: IUser = await userServices.updateUser(
             id,
             username,
             email,
             first_name,
             last_name,
             password,
-            requesterIsAdmin
+            user.is_admin 
         );
-
         const response: IAPIResponse<Partial<IUser>> = {
             data: updatedUser,
             error: null,
-            status: 201,
+            status: 200,
         };
 
-        res.status(201).json(response);
+        res.status(200).json(response);
     } catch (e: any) {
         console.error(e);
         res.status(e.status || 500).json({ data: null, error: e.message });
