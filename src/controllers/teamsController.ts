@@ -145,6 +145,35 @@ const deleteTeamById = async(req:Request,res:Response):Promise<void>=>{
     }
 }
 
+const deleteTeamMember = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { team_id, user_id } = req.params;
+        const deleteUser: IUser[] | null = await teamsServices.deleteMemberFromTeam(team_id, user_id);
+
+        if (deleteUser) {
+            const response: IAPIResponse<IUser[]> = {
+                data: deleteUser,
+                error: null,
+                status: 200,
+            };
+            res.status(200).json(response);
+        } else {
+            res.status(404).json({
+                data: null,
+                error: "Usuário ou equipe não encontrada.",
+                status: 404,
+            });
+        }
+    } catch (e: any) {
+        console.error(e);
+        res.status(e.status || 500).json({
+            data: null,
+            error: e.message,
+            status: e.status || 500,
+        });
+    }
+}
+
 export default {
     createTeam,
     getAllTeams,
@@ -152,4 +181,5 @@ export default {
     getTeamMembers,
     updateTeam,
     deleteTeamById,
+    deleteTeamMember,
 };
