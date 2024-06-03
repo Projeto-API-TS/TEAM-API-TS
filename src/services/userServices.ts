@@ -198,15 +198,22 @@ const deleteUserById = async (
 ): Promise<IUser> => {
     try {
         const userLogged: IUser = await userRepository.getMyUser(userIDLogged);
-        if (userLogged.is_admin) {
-            const user: IUser = await userRepository.deleteUserById(userID);
-            return user;
-        } else {
+        const userLeader: ISquad = await teamsRepository.verificateLeader(
+            userID
+        );
+        if (!userLogged.is_admin) {
             throw new CustomError(
                 "Ação não autorizada! Você não é um administrador.",
                 403
             );
+        } else if (userLeader) {
+            throw new CustomError(
+                "Ação não autorizada! Você não pode excluir um líder de equipe.",
+                403
+            );
         }
+        const user: IUser = await userRepository.deleteUserById(userID);
+        return user;
     } catch (e: any) {
         throw e;
     }
