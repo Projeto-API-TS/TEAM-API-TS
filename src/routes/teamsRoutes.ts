@@ -3,10 +3,11 @@ const router = express.Router();
 import teamController from "../controllers/teamsController";
 import authMiddleware from "../middleware/auth";
 
-router.post("/", teamController.createTeam);
-router.get("/", teamController.getAllTeams);
-router.get("/:team_id/members", authMiddleware, teamController.getTeamMembers);
-router.get("/:team_id", teamController.getTeamById);
-router.patch("/:id", teamController.updateTeam);
+router.post("/teams", teamController.createTeam);
+router.get("/teams", teamController.getAllTeams);
+router.get("/teams/:team_id/members", authMiddleware, teamController.getTeamMembers);
+router.get("/teams/:team_id", teamController.getTeamById);
+router.patch("/teams/:id", teamController.updateTeam);
+router.delete("/teams/:team_id", teamController.updateTeam);
 
 export default router;
