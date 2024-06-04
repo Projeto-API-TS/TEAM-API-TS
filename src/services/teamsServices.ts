@@ -5,8 +5,14 @@ import CustomError from "../utils/customError";
 import IUser from "../interfaces/user";
 import userRepository from "../repository/userRepository";
 
-const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
+const createTeam = async (name: string, leaderId: string, userIDLogged: string): Promise<ISquad> => {
     try {
+        const userLogged = await userRepository.getMyUser(userIDLogged);
+
+        if (!userLogged.is_admin) {
+            throw new CustomError("Acesso não autorizado!", 403);
+        }
+
         if (!validateTeamName(name)) {
             throw new CustomError("O nome do time deve ter entre 3 e 30 caracteres e conter apenas letras e espaços.", 400);
         }
@@ -81,8 +87,13 @@ const insertMember = async (team_id: string, user_id: string, loggedUserId: stri
     }
 };
 
-const getAllTeams = async (): Promise<ISquad[]> => {
+const getAllTeams = async (userIDLogged: string): Promise<ISquad[]> => {
     try {
+        const userLogged = await userRepository.getMyUser(userIDLogged);
+        const userIsLeader = await teamsRepository.verificateLeader(userLogged.id)
+        if (!userLogged.is_admin && !userIsLeader) {
+            throw new CustomError("Acesso não autorizado!", 403);
+        }
         const teams: ISquad[] = await teamsRepository.getAllTeams();
         return teams;
     } catch (e) {
@@ -90,14 +101,21 @@ const getAllTeams = async (): Promise<ISquad[]> => {
     }
 };
 
-const getTeamById = async (team_id: string): Promise<ISquad | null> => {
+const getTeamById = async (team_id: string, userIDLogged: string): Promise<ISquad | null> => {
     try {
+        const userLogged = await userRepository.getMyUser(userIDLogged);
+        const userIsLeader = await teamsRepository.verificateLeader(userLogged.id)
+        
         if (!team_id) {
             throw new CustomError("O id é obrigatotrio.", 400);
         }
-
+        
         if (!validateUUID(team_id)) {
             throw new CustomError("ID de time invalido.", 400);
+        }
+        
+        if (!userLogged.is_admin && !userIsLeader && userLogged.squad !== team_id) {
+            throw new CustomError("Acesso não autorizado!", 403);
         }
 
         const team: ISquad | null = await teamsRepository.getTeamById(team_id);
@@ -194,7 +212,7 @@ const deleteTeamById = async (team_id: string): Promise<void> => {
     }
 };
 
-const deleteMemberFromTeam = async(team_id: string, user_id: string, loggedUserId: string): Promise<IUser[] | null> => {
+const deleteMemberFromTeam = async (team_id: string, user_id: string, loggedUserId: string): Promise<IUser[] | null> => {
     try {
         if (!validateUUID(team_id)) {
             throw new CustomError("ID de time inválido.", 400);
@@ -220,7 +238,7 @@ const deleteMemberFromTeam = async(team_id: string, user_id: string, loggedUserI
         }
 
         const member = await userRepository.getMyUser(user_id);
-        if (!member || !teamMember.some(name => name.id === user_id)) {
+        if (!member || !teamMember.some((name) => name.id === user_id)) {
             throw new CustomError("Usuário não encontrado na equipe.", 404);
         }
 
@@ -230,7 +248,7 @@ const deleteMemberFromTeam = async(team_id: string, user_id: string, loggedUserI
     } catch (e) {
         throw e;
     }
-}
+};
 
 export default {
     createTeam,

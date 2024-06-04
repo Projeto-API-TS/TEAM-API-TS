@@ -9,7 +9,9 @@ import userRepository from "../repository/userRepository";
 
 const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     try {
-        const users: IUser[] = await userServices.getAllUsers();
+        const userIDLogged = req.userID;
+
+        const users: IUser[] = await userServices.getAllUsers(userIDLogged);
 
         const response: IAPIResponse<IUser[]> = {
             data: users,

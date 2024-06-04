@@ -119,6 +119,7 @@ const updateUser = async (
         WHERE id = $7 
         RETURNING *;
     `;
+
     let client;
     try {
         client = await pool.connect();
