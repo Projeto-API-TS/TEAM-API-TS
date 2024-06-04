@@ -178,10 +178,10 @@ const deleteTeamMember = async (req: Request, res: Response): Promise<void> => {
     try {
         const { team_id, user_id } = req.params;
         const loggedUserId = req.userID;
-        const deleteUser: IUser[] | null = await teamsServices.deleteMemberFromTeam(team_id, user_id, loggedUserId);
+        const deleteUser: IUser | null = await teamsServices.deleteMemberFromTeam(team_id, user_id, loggedUserId);
 
         if (deleteUser) {
-            const response: IAPIResponse<IUser[]> = {
+            const response: IAPIResponse<IUser> = {
                 data: deleteUser,
                 error: null,
                 status: 200,

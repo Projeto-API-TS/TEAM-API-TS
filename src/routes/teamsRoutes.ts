@@ -10,6 +10,6 @@ router.post("/:team_id/member/:user_id", authMiddleware, teamController.insertMe
 router.post("/", authMiddleware, teamController.createTeam);
 router.patch("/:id", authMiddleware, teamController.updateTeam);
 router.delete("/:team_id", authMiddleware, teamController.deleteTeamById);
-router.delete("/teams/:team_id/member/:user_id", authMiddleware, teamController.deleteTeamMember);
+router.delete("/:team_id/member/:user_id", authMiddleware, teamController.deleteTeamMember);
 
 export default router;

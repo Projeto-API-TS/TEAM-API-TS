@@ -186,7 +186,7 @@ const deleteTeamById = async (team_id: string): Promise<ISquad> => {
 };
 
 const removeMemberFromTeam = async (team_id: string, user_id: string) => {
-    const query = "UPDATE users SET squad = NULL WHERE id = $1 AND squad = $2";
+    const query = "UPDATE users SET squad = NULL WHERE id = $1 AND squad = $2 RETURNING *";
 
     let client;
     try {

@@ -241,7 +241,7 @@ const deleteTeamById = async (team_id: string, userIDLogged: string): Promise<IS
     }
 };
 
-const deleteMemberFromTeam = async (team_id: string, user_id: string, loggedUserId: string): Promise<IUser[] | null> => {
+const deleteMemberFromTeam = async (team_id: string, user_id: string, loggedUserId: string): Promise<IUser | null> => {
     try {
         if (!validateUUID(team_id)) {
             throw new CustomError("ID de time inválido.", 400);
@@ -268,7 +268,7 @@ const deleteMemberFromTeam = async (team_id: string, user_id: string, loggedUser
             throw new CustomError("Usuário não encontrado na equipe.", 404);
         }
 
-        const members: IUser[] = await teamsRepository.removeMemberFromTeam(team_id, user_id);
+        const members: IUser = await teamsRepository.removeMemberFromTeam(team_id, user_id);
 
         return members;
     } catch (e) {
