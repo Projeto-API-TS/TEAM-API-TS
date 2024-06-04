@@ -113,7 +113,7 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
         const id = req.params.user_id;
 
         
-        const user: IUser = await userRepository.getMyUser(id);
+        const user: IUser = await userServices.getMyUser(id);
 
         
         if (!user) {
