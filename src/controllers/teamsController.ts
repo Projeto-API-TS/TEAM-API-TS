@@ -7,8 +7,9 @@ import { Request, Response } from "express";
 const createTeam = async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, leaderId } = req.body;
+        const userIDLogged = req.userID;
 
-        const newTeam: ISquad = await teamsServices.createTeam(name, leaderId);
+        const newTeam: ISquad = await teamsServices.createTeam(name, leaderId, userIDLogged);
 
         const response = {
             data: newTeam,
@@ -76,7 +77,9 @@ const getAllTeams = async (req: Request, res: Response): Promise<void> => {
 const getTeamById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { team_id } = req.params;
-        const team: ISquad | null = await teamsServices.getTeamById(team_id);
+        const userIDLogged = req.userID;
+
+        const team: ISquad | null = await teamsServices.getTeamById(team_id, userIDLogged);
 
         if (team) {
             const response = {
