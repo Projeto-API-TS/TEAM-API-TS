@@ -154,10 +154,11 @@ const updateTeam = async (req: Request, res: Response): Promise<void> => {
 const deleteTeamById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { team_id } = req.params;
-        const deleteTeam = await teamsServices.deleteTeamById(team_id);
+        const userIDLogged = req.userID;
+        const deletedTeam = await teamsServices.deleteTeamById(team_id, userIDLogged);
 
         const response: IAPIResponse<Partial<ISquad>> = {
-            data: null,
+            data: deletedTeam,
             error: null,
             status: 200,
         };

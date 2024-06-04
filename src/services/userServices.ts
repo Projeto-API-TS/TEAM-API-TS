@@ -137,15 +137,22 @@ const updateUser = async (
 
         if(requesterIsAdmin && oldUser.is_admin === false){
 
-            return await userRepository.updateUser(
-                id,
-                username || oldUser.username,
-                email || oldUser.email,
-                first_name || oldUser.first_name,
-                last_name || oldUser.last_name,
-                hashedPassword || oldUser.password,
-                true
-            );
+            const userValues: IUser = await userRepository.getMyUser(id);
+            const userSquad:string|undefined = userValues.squad;
+            if (!userSquad) {
+                throw new CustomError('Usuário está associado a um time e não pode ser elevado a administrador.', 403);
+            } else{
+                return await userRepository.updateUser(
+                    id,
+                    username || oldUser.username,
+                    email || oldUser.email,
+                    first_name || oldUser.first_name,
+                    last_name || oldUser.last_name,
+                    hashedPassword || oldUser.password,
+                    true
+                );
+
+            }
         }
         return await userRepository.updateUser(
             id,
@@ -178,12 +185,12 @@ const deleteUserById = async (userID: string, userIDLogged: string): Promise<IUs
     }
 };
 
-const loginService = async (email: string, password: string): Promise<string> => {
+const loginService = async (username: string, password: string): Promise<string> => {
     try {
-        const result = await userRepository.loginQuery(email);
+        const result = await userRepository.getUserByUsername(username);
 
-        if (result.length > 0) {
-            const user = result[0];
+        if (result) {
+            const user = result;
             const hashedPassword = await bcrypt.compare(password, user.password);
 
             if (!hashedPassword) {

@@ -72,7 +72,7 @@ const getTeamMembers = async (team_id: string): Promise<IUser[]> => {
     let client;
     try {
         client = await pool.connect();
-        const { rows } = await client.query(query , [team_id]);
+        const { rows } = await client.query(query, [team_id]);
         return rows;
     } catch (e: any) {
         throw new CustomError(e.message, 500);
@@ -89,18 +89,18 @@ const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
     let client;
     try {
         client = await pool.connect();
-        await client.query('BEGIN');
+        await client.query("BEGIN");
 
         const { rows } = await client.query(createTeamQuery, [name, leaderId]);
         const newTeam = rows[0];
-        
+
         await client.query(updateUserQuery, [newTeam.id, leaderId]);
 
-        await client.query('COMMIT');
+        await client.query("COMMIT");
         return newTeam;
     } catch (e: any) {
         if (client) {
-            await client.query('ROLLBACK');
+            await client.query("ROLLBACK");
         }
         throw new CustomError(e.message, 500);
     } finally {
@@ -110,8 +110,7 @@ const createTeam = async (name: string, leaderId: string): Promise<ISquad> => {
     }
 };
 
-
-const insertMember = async (team_id: string, user_id: string,) => {
+const insertMember = async (team_id: string, user_id: string) => {
     const query = `UPDATE users SET squad = $1 WHERE id = $2 RETURNING id, username, email, first_name, last_name, squad`;
     let client;
     try {
@@ -133,7 +132,7 @@ const verificateLeader = async (leader_id: string): Promise<ISquad> => {
     try {
         client = await pool.connect();
         const { rows } = await client.query(query, [leader_id]);
-        return rows[0]; 
+        return rows[0];
     } catch (e: any) {
         throw new CustomError(e.message, 500);
     } finally {
@@ -159,25 +158,32 @@ const updateTeam = async (id: string, name: string, leaderId: string) => {
     }
 };
 
-const deleteTeamById = async(team_id:string):Promise<void>=>{
-    const queryUpdateLeader="UPDATE users SET leader = NULL WHERE leader = (SELECT leader FROM teams WHERE ID =$1)";
-    const queryDeleteTeam ="DELETE FROM teams WHERE id =$1";
+const deleteTeamById = async (team_id: string): Promise<ISquad> => {
+    const queryUpdateLeader = "UPDATE users SET squad = NULL WHERE squad = $1";
+    const queryDeleteTeam = "DELETE FROM teams WHERE id = $1 RETURNING *";
 
     let client;
-
     try {
         client = await pool.connect();
-        await client.query(queryUpdateLeader, [team_id]);
-        await client.query(queryDeleteTeam, [team_id]);
+        await client.query("BEGIN");
 
-    } catch (e:any) {
-        throw new CustomError (e.message,500);
-    }finally {
+        await client.query(queryUpdateLeader, [team_id]);
+        const { rows } = await client.query(queryDeleteTeam, [team_id]);
+
+        await client.query("COMMIT");
+
+        return rows[0];
+    } catch (e: any) {
+        if (client) {
+            await client.query("ROLLBACK");
+        }
+        throw new CustomError(e.message, 500);
+    } finally {
         if (client) {
             client.release();
         }
     }
-}
+};
 
 const removeMemberFromTeam = async (team_id: string, user_id: string) => {
     const query = "UPDATE users SET squad = NULL WHERE id = $1 AND squad = $2";
@@ -186,15 +192,12 @@ const removeMemberFromTeam = async (team_id: string, user_id: string) => {
     try {
         client = await pool.connect();
         const { rows } = await client.query(query, [user_id, team_id]);
-        return rows[0]
-
+        return rows[0];
     } catch (e: any) {
         throw new CustomError(e.message, 500);
-
     } finally {
         if (client) {
             client.release();
-
         }
     }
 };
@@ -209,7 +212,6 @@ export default {
     insertMember,
     verificateLeader,
     updateTeam,
-    deleteTeamById,   
-    removeMemberFromTeam, 
+    deleteTeamById,
+    removeMemberFromTeam,
 };
-

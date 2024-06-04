@@ -56,10 +56,7 @@ const getUserById = async (req: Request, res: Response): Promise<void> => {
     try {
         const userIDLogged = req.userID;
         const userID = req.params.user_id;
-        const user: IUser = await userServices.getUserById(
-            userID,
-            userIDLogged
-        );
+        const user: IUser = await userServices.getUserById(userID, userIDLogged);
 
         const response: IAPIResponse<IUser> = {
             data: user,
@@ -82,13 +79,7 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { username, email, first_name, last_name, password } = req.body;
 
-        const newUser = await userServices.createUser(
-            username,
-            email,
-            first_name,
-            last_name,
-            password
-        );
+        const newUser = await userServices.createUser(username, email, first_name, last_name, password);
 
         const response: IAPIResponse<Partial<IUser>> = {
             data: newUser,
@@ -134,6 +125,7 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
             password,
             user.is_admin 
         );
+
         const response: IAPIResponse<Partial<IUser>> = {
             data: updatedUser,
             error: null,
@@ -149,23 +141,21 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
 
 const login = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email, password }: IUser = req.body;
+        const { username, password }: IUser = req.body;
 
-        const userID: string = await userServices.loginService(
-            email.trim(),
-            password.trim()
-        );
+        const userID: string = await userServices.loginService(username, password);
 
         const sessionToken = jwt.sign({ userID }, config.SECRET_KEY, {
-            expiresIn: 9999999999,
+            expiresIn: 864000,
         });
 
         res.cookie("sessionID", sessionToken, {
-            maxAge: 900000,
+            maxAge: 864000000,
             httpOnly: true,
         });
         res.status(200).json({ sessionToken });
-    } catch (error) {
+    } catch (error: any) {
+        console.log(error);
         if (error instanceof CustomError) {
             res.status(error.status).json({
                 data: null,
@@ -182,10 +172,7 @@ const deleteUserById = async (req: Request, res: Response): Promise<void> => {
     try {
         const userIDLogged = req.userID;
         const userID = req.params.user_id;
-        const user: IUser = await userServices.deleteUserById(
-            userID,
-            userIDLogged
-        );
+        const user: IUser = await userServices.deleteUserById(userID, userIDLogged);
 
         const response: IAPIResponse<IUser> = {
             data: user,
