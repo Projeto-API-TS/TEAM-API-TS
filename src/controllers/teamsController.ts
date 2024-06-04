@@ -133,7 +133,8 @@ const updateTeam = async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, leaderId } = req.body;
         const id = req.params.id;
-        const updatedTeam = await teamsServices.updateTeam(id, name, leaderId);
+        const userIDLogged = req.userID;
+        const updatedTeam = await teamsServices.updateTeam(id, name, leaderId, userIDLogged);
 
         const response: IAPIResponse<Partial<ISquad>> = {
             data: updatedTeam,
