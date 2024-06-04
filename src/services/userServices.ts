@@ -46,6 +46,11 @@ const getUserById = async (userID: string, userIDLogged: string): Promise<IUser>
         } else {
             throw new CustomError("Acesso não autorizado!", 403);
         }
+
+        if (!user) {
+            throw new CustomError('Usuário não encontrado.', 404);
+        }
+
         return user;
     } catch (e: any) {
         throw e;
@@ -102,9 +107,30 @@ const updateUser = async (
     email: string,
     first_name: string,
     last_name: string,
-    password: string
+    password: string,
+    is_admin: boolean ,
+    userIDLogged: string
 ): Promise<IUser> => {
     try {
+        const userLogged: IUser = await userRepository.getMyUser(userIDLogged);
+        const oldUser: IUser = await userRepository.getMyUser(id);
+        const allowGivingAdmin = userLogged.is_admin && !oldUser.squad;
+        console.log("allow:", allowGivingAdmin);
+        
+        const isAdminValue = allowGivingAdmin ? is_admin : false;
+
+        if(!oldUser){
+            throw new CustomError('Usuário não encontrado.', 404);
+        }
+
+        if (!userLogged.is_admin && oldUser.id !== userIDLogged) {
+            throw new CustomError("Acesso não autorizado!", 403);
+        }
+
+        if (userLogged.is_admin && is_admin && oldUser.squad) {
+            throw new CustomError("Não é possivel dar admin para um usuário com equipe.", 403);
+        }
+
         if (username && !validateUsername(username)) {
             throw new CustomError(
                 "O nome de usuário deve ter entre 1 e 30 caracteres e conter apenas letras, números e sublinhados.",
@@ -130,7 +156,6 @@ const updateUser = async (
             throw new CustomError("O username fornecido já está sendo utilizado.", 400);
         }
 
-        const oldUser: IUser = await userRepository.getMyUser(id);
         const hashedPassword = password ? await hashPassword(password) : null;
 
         const updatedUser = await userRepository.updateUser(
@@ -139,10 +164,11 @@ const updateUser = async (
             email || oldUser.email,
             first_name || oldUser.first_name,
             last_name || oldUser.last_name,
-            hashedPassword || oldUser.password
+            hashedPassword || oldUser.password,
+            isAdminValue
         );
 
-        return updatedUser;
+        return updatedUser
     } catch (e) {
         throw e;
     }
@@ -158,6 +184,11 @@ const deleteUserById = async (userID: string, userIDLogged: string): Promise<IUs
             throw new CustomError("Ação não autorizada! Você não pode excluir um líder de equipe.", 403);
         }
         const user: IUser = await userRepository.deleteUserById(userID);
+
+        if (!user) {
+            throw new CustomError('Usuário não encontrado.', 404);
+        }
+
         return user;
     } catch (e: any) {
         throw e;

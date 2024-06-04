@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 import CustomError from "../utils/customError";
 import jwt from "jsonwebtoken";
 import config from "../config";
+import userRepository from "../repository/userRepository";
 
 const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -99,20 +100,31 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
 
 const updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { username, email, first_name, last_name, password } = req.body;
-        const id = req.userID;
-        const updatedUser = await userServices.updateUser(id, username, email, first_name, last_name, password);
+        const { username, email, first_name, last_name, password, is_admin} = req.body;
+        const id = req.params.user_id;
+        const userIDLogged = req.userID;
+
+        const updatedUser: IUser = await userServices.updateUser(
+            id,
+            username,
+            email,
+            first_name,
+            last_name,
+            password,
+            is_admin || false,
+            userIDLogged
+        );
 
         const response: IAPIResponse<Partial<IUser>> = {
             data: updatedUser,
             error: null,
-            status: 201,
+            status: 200,
         };
 
-        res.status(201).json(response);
+        res.status(200).json(response);
     } catch (e: any) {
         console.error(e);
-        res.status(e.status || 500).json({ data: null, error: e.message });
+        res.status(e.status || 500).json({ data: null, error: e.message , status: e.status || 500});
     }
 };
 
