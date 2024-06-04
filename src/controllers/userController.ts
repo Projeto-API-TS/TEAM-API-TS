@@ -144,7 +144,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
         });
         res.status(200).json({ sessionToken });
     } catch (error: any) {
-        console.log(error);
+        console.error(error);
         if (error instanceof CustomError) {
             res.status(error.status).json({
                 data: null,

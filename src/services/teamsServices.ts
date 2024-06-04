@@ -154,14 +154,30 @@ const getTeamMembers = async (team_id: string, userID: string): Promise<IUser[]>
     }
 };
 
-const updateTeam = async (id: string, name: string, leaderId: string): Promise<ISquad> => {
+const updateTeam = async (id: string, name: string, leaderId: string, userIDLogged: string): Promise<ISquad> => {
     try {
+        const userLogged = await userRepository.getMyUser(userIDLogged);
+        const userIsLeader = await teamsRepository.verificateLeader(userLogged.id);
+        const newLeader = await userRepository.getMyUser(leaderId)
+
+        if (leaderId && !newLeader) {
+            throw new CustomError("Não foi encontrado o novo lider fornecido.", 404);
+        }
+
+        if (leaderId && newLeader.squad !== id) {
+            throw new CustomError("O novo lider fornecido, não está na equipe.", 400);
+        }
+
         if (!id) {
             throw new CustomError("O id é obrigatotrio.", 400);
         }
 
         if (!validateUUID(id)) {
             throw new CustomError("ID de time invalido.", 400);
+        }
+
+        if (!userLogged.is_admin && !userIsLeader) {
+            throw new CustomError("Acesso não autorizado!", 403);
         }
 
         if (name && !validateTeamName(name)) {

@@ -115,7 +115,6 @@ const updateUser = async (
         const userLogged: IUser = await userRepository.getMyUser(userIDLogged);
         const oldUser: IUser = await userRepository.getMyUser(id);
         const allowGivingAdmin = userLogged.is_admin && !oldUser.squad;
-        console.log("allow:", allowGivingAdmin);
         
         const isAdminValue = allowGivingAdmin ? is_admin : false;
 
@@ -204,13 +203,13 @@ const loginService = async (username: string, password: string): Promise<string>
             const hashedPassword = await bcrypt.compare(password, user.password);
 
             if (!hashedPassword) {
-                const error = new CustomError("Email e/ou senha incorretos.", 404);
+                const error = new CustomError("Username e/ou senha incorretos.", 404);
                 throw error;
             }
 
             return user.id;
         } else {
-            const error = new CustomError("Email e/ou senha incorretos.", 404);
+            const error = new CustomError("Username e/ou senha incorretos.", 404);
             throw error;
         }
     } catch (error) {
