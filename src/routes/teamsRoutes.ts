@@ -9,7 +9,7 @@ router.get("/:team_id", authMiddleware, teamController.getTeamById);
 router.post("/:team_id/member/:user_id", authMiddleware, teamController.insertMember);
 router.post("/", authMiddleware, teamController.createTeam);
 router.patch("/:id", teamController.updateTeam);
-router.delete("/:team_id", teamController.deleteTeamById);
+router.delete("/:team_id", authMiddleware, teamController.deleteTeamById);
 router.delete("/teams/:team_id/member/:user_id", authMiddleware, teamController.deleteTeamMember);
 
 export default router;
