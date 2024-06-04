@@ -100,21 +100,9 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
 
 const updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { username, email, first_name, last_name, password } = req.body;
+        const { username, email, first_name, last_name, password, is_admin} = req.body;
         const id = req.params.user_id;
-
-        
-        const user: IUser = await userServices.getMyUser(id);
-
-        
-        if (!user) {
-            throw new CustomError('Usuário não encontrado.', 404);
-        }
-
-        
-        if (req.body.is_admin && user.id === id) {
-            throw new CustomError('Você não pode alterar sua própria permissão para administrador.', 403);
-        }
+        const userIDLogged = req.userID;
 
         const updatedUser: IUser = await userServices.updateUser(
             id,
@@ -123,7 +111,8 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
             first_name,
             last_name,
             password,
-            user.is_admin 
+            is_admin || false,
+            userIDLogged
         );
 
         const response: IAPIResponse<Partial<IUser>> = {
@@ -135,7 +124,7 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
         res.status(200).json(response);
     } catch (e: any) {
         console.error(e);
-        res.status(e.status || 500).json({ data: null, error: e.message });
+        res.status(e.status || 500).json({ data: null, error: e.message , status: e.status || 500});
     }
 };
 

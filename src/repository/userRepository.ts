@@ -128,7 +128,7 @@ const updateUser = async (
 ): Promise<IUser> => {
     const query = `
         UPDATE users 
-        SET username = $1, email = $2, first_name = $3, last_name = $4, password = $5, is_admin =$6
+        SET username = $1, email = $2, first_name = $3, last_name = $4, password = $5, is_admin = $6
         WHERE id = $7 
         RETURNING *;
     `;
