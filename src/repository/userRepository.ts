@@ -75,12 +75,12 @@ const getUserByUsername = async (username: string): Promise<IUser> => {
     }
 };
 
-const getUserByEmail = async (email: string): Promise<IUser[]> => {
+const getUserByEmail = async (email: string): Promise<IUser> => {
     const client = await pool.connect();
     try {
         const query = "SELECT id, password FROM users WHERE email = $1";
         const result = await client.query(query, [email]);
-        return result.rows;
+        return result.rows[0];
     } catch (error: any) {
         throw error;
     } finally {
