@@ -67,7 +67,7 @@ const createUser = async (
     try {
         if (!validateUsername(username)) {
             throw new CustomError(
-                "O nome de usuário deve ter entre 1 e 30 caracteres e conter apenas letras, números e sublinhados.",
+                "O nome de usuário deve ter entre 3 e 30 caracteres e conter apenas letras, números e sublinhados.",
                 400
             );
         }
@@ -80,8 +80,12 @@ const createUser = async (
             throw new CustomError("Nome e sobrenome são obrigatorios.", 400);
         }
 
-        if (!validateName(first_name + last_name)) {
+        if (!validateName(first_name)) {
             throw new CustomError("O nome deve ter pelo menos 3 caracteres e conter apenas letras e espaços.", 400);
+        }
+
+        if (!validateName(last_name)) {
+            throw new CustomError("O sobrenome deve ter pelo menos 3 caracteres e conter apenas letras e espaços.", 400);
         }
 
         if (!validatePassword(password)) {
@@ -89,6 +93,11 @@ const createUser = async (
         }
 
         const userExists: IUser = await userRepository.getUserByUsername(username);
+        const emailExists: IUser = await userRepository.getUserByEmail(email);
+
+        if (emailExists) {
+            throw new CustomError("O email fornecido já está sendo utilizado.", 400);
+        }
 
         if (userExists) {
             throw new CustomError("O username fornecido já está sendo utilizado.", 400);
@@ -132,7 +141,7 @@ const updateUser = async (
 
         if (username && !validateUsername(username)) {
             throw new CustomError(
-                "O nome de usuário deve ter entre 1 e 30 caracteres e conter apenas letras, números e sublinhados.",
+                "O nome de usuário deve ter entre 3 e 30 caracteres e conter apenas letras, números e sublinhados.",
                 400
             );
         }
@@ -141,8 +150,12 @@ const updateUser = async (
             throw new CustomError("O email deve ser válido no formato padrão (ex: usuario@exemplo.com).", 400);
         }
 
-        if ((first_name || last_name) && !validateName(first_name + last_name)) {
+        if (first_name && !validateName(first_name)) {
             throw new CustomError("O nome deve ter pelo menos 3 caracteres e conter apenas letras e espaços.", 400);
+        }
+
+        if (last_name && !validateName(last_name)) {
+            throw new CustomError("O sobrenome deve ter pelo menos 3 caracteres e conter apenas letras e espaços.", 400);
         }
 
         if (password && !validatePassword(password)) {

@@ -28,7 +28,7 @@ export const validateUUID = (uuid: string): boolean => {
 };
 
 export const validateUsername = (username: string): boolean => {
-    if (username.length < 1 || username.length > 30) {
+    if (username.length < 3 || username.length > 30) {
         return false;
     }
     const usernameRegex = /^[A-Za-z0-9_]+$/;
